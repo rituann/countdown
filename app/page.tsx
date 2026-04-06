@@ -37,12 +37,12 @@ export default function Home() {
 
   return (
     <main className="flex flex-col items-center px-4 relative" style={{ minHeight: "100dvh" }}>
-      {/* Ambient background glow */}
+      {/* Subtle ambient glow — gold tint only, no blue hue */}
       <div
-        className="pointer-events-none fixed inset-0 opacity-20"
+        className="pointer-events-none fixed inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,242,255,0.15) 0%, transparent 70%)",
+            "radial-gradient(ellipse 60% 40% at 50% 0%, rgba(212,175,55,0.06) 0%, transparent 70%)",
         }}
       />
 
@@ -53,8 +53,8 @@ export default function Home() {
         className="mt-6 mb-6 text-center shrink-0"
       >
         <span
-          className="led text-4xl md:text-5xl font-bold tracking-widest uppercase"
-          style={{ color: "var(--gold)" }}
+          className="text-4xl md:text-5xl font-bold tracking-widest uppercase"
+          style={{ color: "var(--gold)", fontFamily: "var(--font-jetbrains), monospace" }}
         >
           Countdown
         </span>
