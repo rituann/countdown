@@ -37,9 +37,51 @@ export default function Workspace({ numbers }: Props) {
     setEquation((prev) => [...prev, op]);
   }
 
-  // Brackets and = are free-form notation — no validation, scratch-pad only
+  // Brackets are free-form notation tokens
   function addToken(token: string) {
     setEquation((prev) => [...prev, token]);
+  }
+
+  /**
+   * Evaluate the expression since the last `=` (or from start),
+   * then append `= <result>` or `= ?` if invalid/fractional/negative.
+   */
+  function addEquals() {
+    // Find where current sub-expression starts (after last = result pair)
+    let startIdx = 0;
+    for (let i = equation.length - 1; i >= 0; i--) {
+      if (equation[i] === "=") {
+        startIdx = i + 2; // skip "= <result>" pair
+        break;
+      }
+    }
+    const currentTokens = equation.slice(startIdx);
+    if (!currentTokens.length) return;
+
+    // Build a JS-evaluable string
+    const expr = currentTokens
+      .join("")
+      .replace(/−/g, "-")
+      .replace(/×/g, "*")
+      .replace(/÷/g, "/");
+
+    try {
+      // Safe: tokens are strictly controlled by button clicks, no user text input
+      // eslint-disable-next-line no-new-func
+      const result = Function('"use strict"; return (' + expr + ")")();
+      if (
+        typeof result === "number" &&
+        isFinite(result) &&
+        Number.isInteger(result) &&
+        result > 0
+      ) {
+        setEquation((prev) => [...prev, "=", String(result)]);
+      } else {
+        setEquation((prev) => [...prev, "=", "?"]);
+      }
+    } catch {
+      setEquation((prev) => [...prev, "=", "?"]);
+    }
   }
 
   function backspace() {
@@ -166,9 +208,9 @@ export default function Workspace({ numbers }: Props) {
                     {b}
                   </button>
                 ))}
-                {/* Equals — mark intermediate results */}
+                {/* Equals — evaluates and shows result */}
                 <button
-                  onClick={() => addToken(EQUALS)}
+                  onClick={addEquals}
                   className="w-12 h-12 rounded-xl text-xl font-bold glass transition-all"
                   style={{ color: "rgba(212,175,55,0.8)" }}
                 >
