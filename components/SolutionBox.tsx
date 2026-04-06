@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { solve } from "@/lib/solver";
 
@@ -10,22 +10,16 @@ interface Props {
   onNewRound: () => void;
 }
 
-/**
- * Shows after the timer ends.
- * "Reveal Solutions" runs the solver and displays the closest result
- * plus up to 5 step-by-step expressions.
- *
- * Special messaging:
- *  - Exact match → "Exact match!"
- *  - 1 away → "Just 1 away — close!"
- *  - 2 away → "Only 2 away — very close!"
- *  - Otherwise → "Closest achievable: X (off by N)"
- */
 export default function SolutionBox({ numbers, target, onNewRound }: Props) {
   const [result, setResult] = useState<ReturnType<typeof solve> | null>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   function reveal() {
     setResult(solve(numbers, target));
+    // Auto-scroll to results after they render
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   }
 
   return (
@@ -48,6 +42,7 @@ export default function SolutionBox({ numbers, target, onNewRound }: Props) {
       ) : (
         <AnimatePresence>
           <motion.div
+            ref={resultsRef}
             key="solutions"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -64,10 +59,8 @@ export default function SolutionBox({ numbers, target, onNewRound }: Props) {
               >
                 {result.closest}
               </p>
-
-              {/* Proximity message */}
               <p className="mt-2 text-sm font-semibold" style={{ color: proximityColor(result.diff) }}>
-                {proximityMessage(result.diff, target)}
+                {proximityMessage(result.diff)}
               </p>
             </div>
 
@@ -91,7 +84,6 @@ export default function SolutionBox({ numbers, target, onNewRound }: Props) {
                       color: "rgba(255,255,255,0.75)",
                     }}
                   >
-                    {/* Each step on its own line */}
                     {expr.split(", ").map((step, j) => (
                       <div key={j}>{step}</div>
                     ))}
@@ -100,7 +92,6 @@ export default function SolutionBox({ numbers, target, onNewRound }: Props) {
               </div>
             )}
 
-            {/* New Round */}
             <button
               onClick={onNewRound}
               className="mt-2 w-full py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all"
@@ -116,7 +107,6 @@ export default function SolutionBox({ numbers, target, onNewRound }: Props) {
         </AnimatePresence>
       )}
 
-      {/* New Round available even before reveal */}
       {!result && (
         <button
           onClick={onNewRound}
@@ -130,7 +120,7 @@ export default function SolutionBox({ numbers, target, onNewRound }: Props) {
   );
 }
 
-function proximityMessage(diff: number, target: number): string {
+function proximityMessage(diff: number): string {
   if (diff === 0) return "Exact match!";
   if (diff === 1) return "Just 1 away — so close!";
   if (diff === 2) return "Only 2 away — very close!";

@@ -9,6 +9,8 @@ interface Props {
 }
 
 const OPERATORS = ["+", "−", "×", "÷"];
+const BRACKETS = ["(", ")"];
+const EQUALS = "=";
 
 /**
  * Collapsible bottom-sheet scratch-pad.
@@ -33,6 +35,11 @@ export default function Workspace({ numbers }: Props) {
     const last = equation[equation.length - 1];
     if (!last || OPERATORS.includes(last)) return;
     setEquation((prev) => [...prev, op]);
+  }
+
+  // Brackets and = are free-form notation — no validation, scratch-pad only
+  function addToken(token: string) {
+    setEquation((prev) => [...prev, token]);
   }
 
   function backspace() {
@@ -136,8 +143,8 @@ export default function Workspace({ numbers }: Props) {
                 ))}
               </div>
 
-              {/* Operator + control row */}
-              <div className="flex gap-2 justify-center">
+              {/* Operators row */}
+              <div className="flex gap-2 justify-center flex-wrap">
                 {OPERATORS.map((op) => (
                   <button
                     key={op}
@@ -148,6 +155,29 @@ export default function Workspace({ numbers }: Props) {
                     {op}
                   </button>
                 ))}
+                {/* Brackets */}
+                {BRACKETS.map((b) => (
+                  <button
+                    key={b}
+                    onClick={() => addToken(b)}
+                    className="w-12 h-12 rounded-xl text-xl font-bold glass transition-all"
+                    style={{ color: "rgba(0,242,255,0.65)" }}
+                  >
+                    {b}
+                  </button>
+                ))}
+                {/* Equals — mark intermediate results */}
+                <button
+                  onClick={() => addToken(EQUALS)}
+                  className="w-12 h-12 rounded-xl text-xl font-bold glass transition-all"
+                  style={{ color: "rgba(212,175,55,0.8)" }}
+                >
+                  =
+                </button>
+              </div>
+
+              {/* Controls row */}
+              <div className="flex gap-2 justify-center">
                 <button
                   onClick={backspace}
                   className="w-12 h-12 rounded-xl glass flex items-center justify-center transition-all"

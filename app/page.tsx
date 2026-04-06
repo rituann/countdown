@@ -36,7 +36,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-start px-4 pb-40 pt-10 relative overflow-hidden">
+    <main className="flex flex-col items-center px-4 relative" style={{ minHeight: "100dvh" }}>
       {/* Ambient background glow */}
       <div
         className="pointer-events-none fixed inset-0 opacity-20"
@@ -50,7 +50,7 @@ export default function Home() {
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8 text-center"
+        className="mt-6 mb-6 text-center shrink-0"
       >
         <span
           className="led text-4xl md:text-5xl font-bold tracking-widest uppercase"
@@ -107,48 +107,56 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="flex flex-col items-center gap-8 w-full max-w-lg"
+            className="flex flex-col items-center w-full max-w-lg pb-28"
           >
-            {/* Target */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: "spring", stiffness: 180 }}
-              className="flex flex-col items-center"
+            {/* Viewport-fitted game area — no scroll until reveal */}
+            <div className="flex flex-col items-center gap-5 w-full"
+              style={{ minHeight: "calc(100dvh - 160px)", justifyContent: "center" }}
             >
-              <p className="text-xs uppercase tracking-widest opacity-40 mb-1">Target</p>
-              <span
-                className="led text-6xl md:text-7xl font-bold glow-blue"
-                style={{ color: "var(--blue)" }}
-              >
-                {target}
-              </span>
-            </motion.div>
-
-            {/* Timer — only animates during PLAYING */}
-            <Timer onTimeUp={handleTimeUp} running={state === "PLAYING"} />
-
-            {/* Number tiles — always one row, shrink to fit any screen */}
-            <div className="flex flex-nowrap gap-2 justify-center w-full">
-              {numbers.map((n, i) => (
-                <NumberCard key={i} value={n} index={i} />
-              ))}
-            </div>
-
-            {/* TIME_UP: reveal + new round */}
-            {state === "TIME_UP" && (
+              {/* Target — gold, no glow */}
               <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="w-full"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: "spring", stiffness: 180 }}
+                className="flex flex-col items-center"
               >
-                <SolutionBox
-                  numbers={numbers}
-                  target={target}
-                  onNewRound={newRound}
-                />
+                <p className="text-xs uppercase tracking-widest opacity-40 mb-1">Target</p>
+                <span
+                  className="text-6xl md:text-7xl font-bold"
+                  style={{
+                    color: "var(--gold)",
+                    fontFamily: "var(--font-jetbrains), monospace",
+                  }}
+                >
+                  {target}
+                </span>
               </motion.div>
-            )}
+
+              {/* Timer — only animates during PLAYING */}
+              <Timer onTimeUp={handleTimeUp} running={state === "PLAYING"} />
+
+              {/* Number tiles — always one row, shrink to fit any screen */}
+              <div className="flex flex-nowrap gap-2 justify-center w-full">
+                {numbers.map((n, i) => (
+                  <NumberCard key={i} value={n} index={i} />
+                ))}
+              </div>
+
+              {/* TIME_UP: reveal button (and results after click auto-scroll) */}
+              {state === "TIME_UP" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="w-full"
+                >
+                  <SolutionBox
+                    numbers={numbers}
+                    target={target}
+                    onNewRound={newRound}
+                  />
+                </motion.div>
+              )}
+            </div>
           </motion.section>
         )}
       </AnimatePresence>
@@ -158,11 +166,12 @@ export default function Home() {
         <Workspace numbers={numbers} />
       )}
 
-      {/* Static footer */}
-      <footer className="fixed bottom-0 left-0 right-0 text-center text-xs py-1.5 z-10 pointer-events-none"
+      {/* Static footer — floats above the workspace handle (~42px tall) */}
+      <footer
+        className="fixed left-0 right-0 text-center text-xs py-1 z-10 pointer-events-none"
         style={{
+          bottom: "42px",
           color: "rgba(255,255,255,0.28)",
-          background: "linear-gradient(to top, rgba(0,20,60,0.7) 0%, transparent 100%)",
         }}
       >
         Concept from the famous British TV Show · Dedicated to Richu, a diehard fan of the show
