@@ -1,65 +1,162 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Timer from "@/components/Timer";
+import NumberCard from "@/components/NumberCard";
+import Workspace from "@/components/Workspace";
+import SolutionBox from "@/components/SolutionBox";
+import { generateNumbers, generateTarget } from "@/lib/gameUtils";
+
+/** The five game states */
+type GameState = "SETUP" | "PLAYING" | "TIME_UP";
+
+const LARGE_OPTIONS = [0, 1, 2, 3, 4];
 
 export default function Home() {
+  const [state, setState] = useState<GameState>("SETUP");
+  const [numbers, setNumbers] = useState<number[]>([]);
+  const [target, setTarget] = useState<number>(0);
+
+  /** User picks how many large numbers → generate everything → start round */
+  function startRound(largeCount: number) {
+    setNumbers(generateNumbers(largeCount));
+    setTarget(generateTarget());
+    setState("PLAYING");
+  }
+
+  /** Timer callback — game stays open, Reveal button appears */
+  const handleTimeUp = useCallback(() => setState("TIME_UP"), []);
+
+  /** Full reset back to SETUP */
+  function newRound() {
+    setNumbers([]);
+    setTarget(0);
+    setState("SETUP");
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main className="min-h-screen flex flex-col items-center justify-start px-4 pb-40 pt-10 relative overflow-hidden">
+      {/* Ambient background glow */}
+      <div
+        className="pointer-events-none fixed inset-0 opacity-20"
+        style={{
+          background:
+            "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,242,255,0.15) 0%, transparent 70%)",
+        }}
+      />
+
+      {/* Logo / title */}
+      <motion.h1
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8 text-center"
+      >
+        <span
+          className="led text-4xl md:text-5xl font-bold tracking-widest uppercase"
+          style={{ color: "var(--gold)" }}
+        >
+          Countdown
+        </span>
+        <br />
+        <span className="text-xs uppercase tracking-[0.4em] opacity-40">
+          Numbers Game
+        </span>
+      </motion.h1>
+
+      <AnimatePresence mode="wait">
+        {/* ── SETUP ─────────────────────────────────────────── */}
+        {state === "SETUP" && (
+          <motion.section
+            key="setup"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            className="flex flex-col items-center gap-8 w-full max-w-sm"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <div className="glass rounded-2xl p-6 flex flex-col items-center gap-6 w-full">
+              <p className="text-center text-sm uppercase tracking-widest opacity-60">
+                How many large numbers?
+              </p>
+              <p className="text-center text-xs opacity-30">
+                Large: 25, 50, 75, 100 &nbsp;·&nbsp; Small: 1–10
+              </p>
+
+              <div className="flex gap-3">
+                {LARGE_OPTIONS.map((n) => (
+                  <motion.button
+                    key={n}
+                    whileTap={{ scale: 0.9 }}
+                    whileHover={{ scale: 1.08 }}
+                    onClick={() => startRound(n)}
+                    className="w-12 h-12 rounded-xl font-bold text-lg transition-all glow-gold glass"
+                    style={{ color: "var(--gold)", border: "1px solid rgba(212,175,55,0.4)" }}
+                  >
+                    {n}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          </motion.section>
+        )}
+
+        {/* ── PLAYING + TIME_UP ─────────────────────────────── */}
+        {(state === "PLAYING" || state === "TIME_UP") && (
+          <motion.section
+            key="playing"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex flex-col items-center gap-8 w-full max-w-lg"
           >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            {/* Target */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "spring", stiffness: 180 }}
+              className="flex flex-col items-center"
+            >
+              <p className="text-xs uppercase tracking-widest opacity-40 mb-1">Target</p>
+              <span
+                className="led text-6xl md:text-7xl font-bold glow-blue"
+                style={{ color: "var(--blue)" }}
+              >
+                {target}
+              </span>
+            </motion.div>
+
+            {/* Timer — only animates during PLAYING */}
+            <Timer onTimeUp={handleTimeUp} running={state === "PLAYING"} />
+
+            {/* Number tiles */}
+            <div className="flex flex-wrap gap-3 justify-center">
+              {numbers.map((n, i) => (
+                <NumberCard key={i} value={n} index={i} />
+              ))}
+            </div>
+
+            {/* TIME_UP: reveal + new round */}
+            {state === "TIME_UP" && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="w-full"
+              >
+                <SolutionBox
+                  numbers={numbers}
+                  target={target}
+                  onNewRound={newRound}
+                />
+              </motion.div>
+            )}
+          </motion.section>
+        )}
+      </AnimatePresence>
+
+      {/* Workspace scratch-pad — only visible during a round */}
+      {(state === "PLAYING" || state === "TIME_UP") && (
+        <Workspace numbers={numbers} />
+      )}
+    </main>
   );
 }
