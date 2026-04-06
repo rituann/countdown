@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --navy: #000d1a;
+  --navy: #002366;   /* Countdown show royal blue */
   --gold: #d4af37;
   --blue: #00f2ff;
   --red: #ff4444;

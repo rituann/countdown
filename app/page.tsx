@@ -128,8 +128,8 @@ export default function Home() {
             {/* Timer — only animates during PLAYING */}
             <Timer onTimeUp={handleTimeUp} running={state === "PLAYING"} />
 
-            {/* Number tiles */}
-            <div className="flex flex-wrap gap-3 justify-center">
+            {/* Number tiles — always one row, shrink to fit any screen */}
+            <div className="flex flex-nowrap gap-2 justify-center w-full">
               {numbers.map((n, i) => (
                 <NumberCard key={i} value={n} index={i} />
               ))}
@@ -157,6 +157,16 @@ export default function Home() {
       {(state === "PLAYING" || state === "TIME_UP") && (
         <Workspace numbers={numbers} />
       )}
+
+      {/* Static footer */}
+      <footer className="fixed bottom-0 left-0 right-0 text-center text-xs py-1.5 z-10 pointer-events-none"
+        style={{
+          color: "rgba(255,255,255,0.28)",
+          background: "linear-gradient(to top, rgba(0,20,60,0.7) 0%, transparent 100%)",
+        }}
+      >
+        Concept from the famous British TV Show · Dedicated to Richu, a diehard fan of the show
+      </footer>
     </main>
   );
 }

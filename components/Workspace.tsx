@@ -71,8 +71,13 @@ export default function Workspace({ numbers }: Props) {
       {/* Toggle handle */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="mx-auto flex items-center gap-2 px-6 py-2 rounded-t-2xl glass border-b-0 text-sm uppercase tracking-widest transition-colors"
-        style={{ color: "var(--gold)", display: "flex" }}
+        className="mx-auto flex items-center gap-2 px-6 py-2 rounded-t-2xl border-b-0 text-sm uppercase tracking-widest transition-colors"
+        style={{
+          color: "var(--gold)",
+          display: "flex",
+          background: "rgba(0, 15, 45, 0.92)",
+          border: "1px solid rgba(212,175,55,0.3)",
+        }}
       >
         <motion.span
           animate={{ rotate: open ? 180 : 0 }}
@@ -91,8 +96,13 @@ export default function Workspace({ numbers }: Props) {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="glass border-t overflow-hidden"
-            style={{ borderColor: "rgba(212,175,55,0.2)" }}
+            className="border-t overflow-hidden"
+            style={{
+              background: "rgba(0, 15, 45, 0.96)",
+              backdropFilter: "blur(16px)",
+              WebkitBackdropFilter: "blur(16px)",
+              borderColor: "rgba(212,175,55,0.3)",
+            }}
           >
             <div className="max-w-lg mx-auto p-4 flex flex-col gap-4">
               {/* Equation display */}
