@@ -2,8 +2,15 @@ export interface SolverResult {
   closest: number;
   /** How far the closest result is from the target (0 = exact) */
   diff: number;
-  /** Up to 5 unique expressions that produce the closest result */
+  /** Up to 5 unique solution paths, sorted simplest first (fewest steps) */
   expressions: string[];
+}
+
+interface Candidate {
+  value: number;
+  diff: number;
+  stepCount: number;
+  steps: string[];
 }
 
 /**
@@ -12,62 +19,61 @@ export interface SolverResult {
  *  - Operations: +, -, *, /
  *  - No negative intermediates
  *  - No fractional intermediates (integer division only)
- *  - Returns up to 5 unique expressions achieving the closest result
+ *
+ * Key improvement over naive approach:
+ *  Collects ALL solutions during search, then sorts by step count ascending
+ *  so the SIMPLEST solution (fewest numbers used) is shown first.
  */
 export function solve(numbers: number[], target: number): SolverResult {
   let closestDiff = Infinity;
   let closestValue = numbers[0];
-  const found = new Set<string>();
-  const MAX_EXPRESSIONS = 5;
 
-  /**
-   * @param nums   Remaining available numbers with their expression strings
-   * @param steps  Human-readable steps accumulated so far
-   */
+  // Collect every candidate that produces a result
+  const candidates: Candidate[] = [];
+
   function recurse(
     nums: Array<{ val: number; expr: string }>,
     steps: string[]
   ): void {
-    // Check each current value against the target
-    for (const { val, expr } of nums) {
+    for (const { val } of nums) {
       const diff = Math.abs(val - target);
+
+      // Update global closest
       if (diff < closestDiff) {
         closestDiff = diff;
         closestValue = val;
-        found.clear();
       }
-      if (diff === closestDiff && found.size < MAX_EXPRESSIONS) {
-        // Build a readable solution string from the steps taken
-        const key = steps.join(", ");
-        if (!found.has(key)) found.add(key);
+
+      // Record this as a candidate (skip trivial 0-step single-number hits
+      // unless it genuinely IS the target — those get picked up below)
+      if (steps.length > 0) {
+        candidates.push({ value: val, diff, stepCount: steps.length, steps });
       }
     }
 
-    if (found.size >= MAX_EXPRESSIONS && closestDiff === 0) return;
-
-    // Try every pair of remaining numbers with every operator
+    // Try every ordered pair with every operator
     for (let i = 0; i < nums.length; i++) {
       for (let j = 0; j < nums.length; j++) {
         if (i === j) continue;
         const a = nums[i];
         const b = nums[j];
-        const rest = nums.filter((_, idx) => idx !== i && idx !== j);
+        const rest = nums.filter((_, k) => k !== i && k !== j);
 
-        const ops: Array<{
-          val: number | null;
-          label: string;
-        }> = [
-          { val: a.val + b.val, label: `${a.expr} + ${b.expr} = ${a.val + b.val}` },
-          // Only subtract if result is positive
+        const ops: Array<{ val: number | null; label: string }> = [
+          {
+            val: a.val + b.val,
+            label: `${a.expr} + ${b.expr} = ${a.val + b.val}`,
+          },
           {
             val: a.val > b.val ? a.val - b.val : null,
             label: `${a.expr} - ${b.expr} = ${a.val - b.val}`,
           },
-          { val: a.val * b.val, label: `${a.expr} × ${b.expr} = ${a.val * b.val}` },
-          // Only divide if result is a whole number
           {
-            val:
-              b.val !== 0 && a.val % b.val === 0 ? a.val / b.val : null,
+            val: a.val * b.val,
+            label: `${a.expr} × ${b.expr} = ${a.val * b.val}`,
+          },
+          {
+            val: b.val !== 0 && a.val % b.val === 0 ? a.val / b.val : null,
             label: `${a.expr} ÷ ${b.expr} = ${a.val / b.val}`,
           },
         ];
@@ -83,14 +89,30 @@ export function solve(numbers: number[], target: number): SolverResult {
     }
   }
 
-  recurse(
-    numbers.map((n) => ({ val: n, expr: String(n) })),
-    []
-  );
+  // Handle case where a number directly equals the target (0 steps)
+  for (const n of numbers) {
+    if (n === target) {
+      return { closest: target, diff: 0, expressions: [`${target} is one of your numbers!`] };
+    }
+  }
 
-  return {
-    closest: closestValue,
-    diff: closestDiff,
-    expressions: Array.from(found),
-  };
+  recurse(numbers.map((n) => ({ val: n, expr: String(n) })), []);
+
+  // Filter to only the closest result, then sort by fewest steps first
+  const best = candidates
+    .filter((c) => c.diff === closestDiff)
+    .sort((a, b) => a.stepCount - b.stepCount);
+
+  // Deduplicate by step signature, take top 5
+  const seen = new Set<string>();
+  const expressions: string[] = [];
+  for (const c of best) {
+    const key = c.steps.join("|");
+    if (!seen.has(key) && expressions.length < 5) {
+      seen.add(key);
+      expressions.push(c.steps.join(", "));
+    }
+  }
+
+  return { closest: closestValue, diff: closestDiff, expressions };
 }
