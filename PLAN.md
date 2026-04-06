@@ -5,6 +5,15 @@
 ## TLDR
 Build a Countdown Numbers Game web app for v1 — a gift replicating the math round from the British TV show. Greenfield Next.js App Router project with a 5-state game flow, 30s animated timer, collapsible workspace scratch-pad, recursive solver, and a Reality TV dark mode UI. Deploy-ready for Vercel.
 
+## Post-v1 Polish (delivered)
+- **Background colour** — deep navy → Countdown show royal blue (`#002366`)
+- **Target number** — electric blue w/ glow → gold, no hue/shadow
+- **Number cards** — `flex-1 + aspect-square` so all 6 always sit on one line at any screen size
+- **Workspace readability** — near-opaque dark panel (`rgba(0,15,45,0.96)`)
+- **Footer** — "Concept from the famous British TV Show · Dedicated to Richu" — fixed above workspace handle
+- **Workspace extras** — added `(`, `)`, `=` buttons for bracket grouping and intermediate results
+- **No-scroll game layout** — game content fits viewport; only scrolls after "Reveal Solutions" is clicked (auto-scroll via `scrollIntoView`)
+
 ## Critical Decisions
 - **No sound in v1** — timer uses animation only (Framer Motion); sound is a future idea
 - **Auto-generated numbers** — app randomly picks large/small numbers after user selects count; no manual tile-drawing
